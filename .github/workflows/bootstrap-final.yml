@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 env:
-  SOURCE_ARCHIVE_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-c9c4-720e-9ad7-a1109dcc202c/raw?se=2026-07-11T20:01:57Z&sp=r&sv=2026-02-06&sr=b&scid=b6b82fb0-89a5-524b-97d2-41b03bc05a5e&skoid=a6356955-0ca0-4033-9150-c0c162458498&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-11T13:56:06Z&ske=2026-07-13T13:56:06Z&sks=b&skv=2026-02-06&sig=gQfVFy36gvx9fUNfaTypEIKdwfp/S9E0FiNZVPGLy9g%3D"
+  SOURCE_ARCHIVE_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-75a0-720e-82a5-8e20ba0a2f07/raw?se=2026-07-11T20:03:15Z&sp=r&sv=2026-02-06&sr=b&scid=54b2f045-5ace-509f-961e-8d558c5afb47&skoid=a6356955-0ca0-4033-9150-c0c162458498&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-11T17:59:50Z&ske=2026-07-13T17:59:50Z&sks=b&skv=2026-02-06&sig=MNPOj/NH79bRnx5WHsdOKi%2Ba7Kec6BXn427L%2BbaQa/M%3D"
 
 jobs:
   import-source:
@@ -36,8 +36,8 @@ jobs:
       - name: Replace bootstrap with validated project
         run: |
           set -euo pipefail
-          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name source -exec rm -rf {} +
-          cp -a source/. .
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github ! -name source -exec rm -rf {} +
+          rsync -a --exclude='.github/' source/ ./
           rm -rf source
 
       - name: Commit complete final repository
