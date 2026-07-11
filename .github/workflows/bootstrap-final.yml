@@ -1,22 +1,26 @@
 name: Bootstrap validated final source
 
 on:
-  push:
+  pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
 
 env:
-  SOURCE_ARCHIVE_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-c44c-720e-b6de-05e4398ac9e0/raw?se=2026-07-11T19:59:57Z&sp=r&sv=2026-02-06&sr=b&scid=03443e17-6e3d-5c76-86be-b613660633ad&skoid=a6356955-0ca0-4033-9150-c0c162458498&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-11T12:06:53Z&ske=2026-07-13T12:06:53Z&sks=b&skv=2026-02-06&sig=S%2Bz6JxBEHKkgT%2BnNaJSj6e9okiSISOU9rGJZJXMg9JA%3D"
+  SOURCE_ARCHIVE_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-c9c4-720e-9ad7-a1109dcc202c/raw?se=2026-07-11T20:01:57Z&sp=r&sv=2026-02-06&sr=b&scid=b6b82fb0-89a5-524b-97d2-41b03bc05a5e&skoid=a6356955-0ca0-4033-9150-c0c162458498&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-11T13:56:06Z&ske=2026-07-13T13:56:06Z&sks=b&skv=2026-02-06&sig=gQfVFy36gvx9fUNfaTypEIKdwfp/S9E0FiNZVPGLy9g%3D"
 
 jobs:
   import-source:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout bootstrap repository
+      - name: Checkout main branch
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Download validated source artifact
         run: |
