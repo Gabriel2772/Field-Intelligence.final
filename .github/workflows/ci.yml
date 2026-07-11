@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "codex/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PORT: 4173
+      BASE_PATH: /
+      REPL_ID: ci-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run typecheck
+      - run: pnpm run build
+      - name: Package validated source
+        run: git archive --format=zip --output=field-intelligence-source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: field-intelligence-validated-source
+          path: field-intelligence-source.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  concurrency-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: field_intelligence
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d field_intelligence"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/field_intelligence
+      PORT: 8080
+      REPL_ID: ci-build
+      ALLOWED_ORIGINS: http://127.0.0.1:8080
+      BASE_URL: http://127.0.0.1:8080
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @workspace/db push-force
+      - name: Recreate pre-upgrade schema state
+        run: pnpm --filter @workspace/db exec node scripts/prepare-legacy-schema.mjs
+      - run: pnpm --filter @workspace/api-server run build
+      - name: Exercise 20 concurrent clients and 40-client burst
+        run: |
+          pnpm --filter @workspace/api-server run start > /tmp/api-server.log 2>&1 &
+          API_PID=$!
+          trap 'kill $API_PID 2>/dev/null || true' EXIT
+          pnpm --filter @workspace/db exec node scripts/concurrency-smoke.mjs
+      - name: Show API log on failure
+        if: failure()
+        run: cat /tmp/api-server.log || true
