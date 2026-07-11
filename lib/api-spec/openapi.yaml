@@ -1,0 +1,2552 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: TEQUALY Field Intelligence API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: obras
+    description: Construction works
+  - name: contratos
+    description: Contracts
+  - name: frentes
+    description: Work fronts
+  - name: ativos
+    description: Assets
+  - name: visitas
+    description: Field visits
+  - name: checklist
+    description: Checklist items
+  - name: rncs
+    description: Non-conformance reports
+  - name: capas
+    description: Corrective action plans
+  - name: compromissos
+    description: Commitments
+  - name: documentos
+    description: Documents
+  - name: conciliacoes
+    description: Reconciliations
+  - name: excecoes
+    description: Exceptions
+  - name: kpis
+    description: Key performance indicators
+  - name: audit
+    description: Audit log
+  - name: dashboard
+    description: Dashboard summaries
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      operationId: getCurrentAuthUser
+      tags: [auth]
+      summary: Get current auth user
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not authenticated
+
+  # ─── Dashboard ───────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Global dashboard summary — totals and key metrics
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/activity:
+    get:
+      operationId: getDashboardActivity
+      tags: [dashboard]
+      summary: Recent activity feed across all obras
+      responses:
+        "200":
+          description: Activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  # ─── Obras ───────────────────────────────────────────────
+  /obras:
+    get:
+      operationId: listObras
+      tags: [obras]
+      summary: List all obras
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List of obras
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Obra"
+    post:
+      operationId: createObra
+      tags: [obras]
+      summary: Create a new obra
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObraInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Obra"
+
+  /obras/{id}:
+    get:
+      operationId: getObra
+      tags: [obras]
+      summary: Get obra by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Obra
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Obra"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateObra
+      tags: [obras]
+      summary: Update an obra
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObraUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Obra"
+    delete:
+      operationId: deleteObra
+      tags: [obras]
+      summary: Delete an obra
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /obras/{id}/dashboard:
+    get:
+      operationId: getObraDashboard
+      tags: [obras]
+      summary: Per-obra dashboard summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObraDashboard"
+
+  # ─── Contratos ───────────────────────────────────────────
+  /contratos:
+    get:
+      operationId: listContratos
+      tags: [contratos]
+      summary: List contracts
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contrato"
+    post:
+      operationId: createContrato
+      tags: [contratos]
+      summary: Create a contract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContratoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contrato"
+
+  /contratos/{id}:
+    get:
+      operationId: getContrato
+      tags: [contratos]
+      summary: Get contract
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Contract
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contrato"
+    patch:
+      operationId: updateContrato
+      tags: [contratos]
+      summary: Update contract
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContratoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contrato"
+    delete:
+      operationId: deleteContrato
+      tags: [contratos]
+      summary: Delete contract
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Frentes ─────────────────────────────────────────────
+  /frentes:
+    get:
+      operationId: listFrentes
+      tags: [frentes]
+      summary: List work fronts
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Frente"
+    post:
+      operationId: createFrente
+      tags: [frentes]
+      summary: Create a work front
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FrenteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Frente"
+
+  /frentes/{id}:
+    patch:
+      operationId: updateFrente
+      tags: [frentes]
+      summary: Update work front
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FrenteUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Frente"
+    delete:
+      operationId: deleteFrente
+      tags: [frentes]
+      summary: Delete work front
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Ativos ──────────────────────────────────────────────
+  /ativos:
+    get:
+      operationId: listAtivos
+      tags: [ativos]
+      summary: List assets
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ativo"
+    post:
+      operationId: createAtivo
+      tags: [ativos]
+      summary: Create an asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtivoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ativo"
+
+  /ativos/{id}:
+    patch:
+      operationId: updateAtivo
+      tags: [ativos]
+      summary: Update asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtivoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ativo"
+    delete:
+      operationId: deleteAtivo
+      tags: [ativos]
+      summary: Delete asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Visitas ─────────────────────────────────────────────
+  /visitas:
+    get:
+      operationId: listVisitas
+      tags: [visitas]
+      summary: List field visits
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Visita"
+    post:
+      operationId: createVisita
+      tags: [visitas]
+      summary: Create a field visit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+
+  /visitas/{id}:
+    get:
+      operationId: getVisita
+      tags: [visitas]
+      summary: Get visit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Visit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+    patch:
+      operationId: updateVisita
+      tags: [visitas]
+      summary: Update visit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Visita"
+    delete:
+      operationId: deleteVisita
+      tags: [visitas]
+      summary: Delete visit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Checklist ───────────────────────────────────────────
+  /checklist:
+    get:
+      operationId: listChecklistItems
+      tags: [checklist]
+      summary: List checklist items
+      parameters:
+        - name: visita_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChecklistItem"
+    post:
+      operationId: createChecklistItem
+      tags: [checklist]
+      summary: Create checklist item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChecklistItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItem"
+
+  # ─── Checklist templates ────────────────────────────────
+  /checklist-templates:
+    get:
+      operationId: listChecklistTemplates
+      tags: [checklist]
+      summary: List checklist templates (NR-18 scaffolding, inventory, demobilization, etc.)
+      parameters:
+        - name: categoria
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChecklistTemplate"
+    post:
+      operationId: createChecklistTemplate
+      tags: [checklist]
+      summary: Create a checklist template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChecklistTemplateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistTemplate"
+
+  /visitas/{visitaId}/checklist/apply-template:
+    post:
+      operationId: applyChecklistTemplate
+      tags: [checklist]
+      summary: Instantiate a template's items as pending checklist items on a visit
+      parameters:
+        - name: visitaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyChecklistTemplateInput"
+      responses:
+        "201":
+          description: Created items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChecklistItem"
+
+  # ─── Visita GPS ──────────────────────────────────────────
+  /visitas/{visitaId}/gps:
+    get:
+      operationId: listVisitaGps
+      tags: [visitas]
+      summary: List GPS readings captured for a visit
+      parameters:
+        - name: visitaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisitaGps"
+    post:
+      operationId: createVisitaGps
+      tags: [visitas]
+      summary: Record a GPS reading for a visit (requires explicit consent)
+      parameters:
+        - name: visitaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaGpsInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitaGps"
+
+  # ─── Visita ↔ Ativos (QR) ────────────────────────────────
+  /visitas/{visitaId}/ativos:
+    get:
+      operationId: listVisitaAtivos
+      tags: [visitas]
+      summary: List assets linked to a visit
+      parameters:
+        - name: visitaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VisitaAtivo"
+    post:
+      operationId: linkVisitaAtivo
+      tags: [visitas]
+      summary: Link an asset to a visit (via QR scan or manual selection)
+      parameters:
+        - name: visitaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisitaAtivoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisitaAtivo"
+
+  /checklist/{id}:
+    patch:
+      operationId: updateChecklistItem
+      tags: [checklist]
+      summary: Update checklist item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChecklistItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistItem"
+    delete:
+      operationId: deleteChecklistItem
+      tags: [checklist]
+      summary: Delete checklist item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── RNCs ────────────────────────────────────────────────
+  /rncs:
+    get:
+      operationId: listRncs
+      tags: [rncs]
+      summary: List non-conformance reports
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rnc"
+    post:
+      operationId: createRnc
+      tags: [rncs]
+      summary: Create RNC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RncInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rnc"
+
+  /rncs/{id}:
+    get:
+      operationId: getRnc
+      tags: [rncs]
+      summary: Get RNC
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: RNC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rnc"
+    patch:
+      operationId: updateRnc
+      tags: [rncs]
+      summary: Update RNC
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RncUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rnc"
+    delete:
+      operationId: deleteRnc
+      tags: [rncs]
+      summary: Delete RNC
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /rncs/stats:
+    get:
+      operationId: getRncStats
+      tags: [rncs]
+      summary: RNC statistics by status and type
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RncStats"
+
+  # ─── CAPAs ───────────────────────────────────────────────
+  /capas:
+    get:
+      operationId: listCapas
+      tags: [capas]
+      summary: List corrective action plans
+      parameters:
+        - name: rnc_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Capa"
+    post:
+      operationId: createCapa
+      tags: [capas]
+      summary: Create CAPA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Capa"
+
+  /capas/{id}:
+    patch:
+      operationId: updateCapa
+      tags: [capas]
+      summary: Update CAPA
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapaUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Capa"
+    delete:
+      operationId: deleteCapa
+      tags: [capas]
+      summary: Delete CAPA
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Compromissos ─────────────────────────────────────────
+  /compromissos:
+    get:
+      operationId: listCompromissos
+      tags: [compromissos]
+      summary: List commitments
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Compromisso"
+    post:
+      operationId: createCompromisso
+      tags: [compromissos]
+      summary: Create a commitment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompromissoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Compromisso"
+
+  /compromissos/{id}:
+    patch:
+      operationId: updateCompromisso
+      tags: [compromissos]
+      summary: Update commitment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompromissoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Compromisso"
+    delete:
+      operationId: deleteCompromisso
+      tags: [compromissos]
+      summary: Delete commitment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Documentos ───────────────────────────────────────────
+  /documentos:
+    get:
+      operationId: listDocumentos
+      tags: [documentos]
+      summary: List documents
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: tipo
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Documento"
+    post:
+      operationId: createDocumento
+      tags: [documentos]
+      summary: Create a document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Documento"
+
+  /documentos/{id}:
+    patch:
+      operationId: updateDocumento
+      tags: [documentos]
+      summary: Update document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Documento"
+    delete:
+      operationId: deleteDocumento
+      tags: [documentos]
+      summary: Delete document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Conciliações ─────────────────────────────────────────
+  /conciliacoes:
+    get:
+      operationId: listConciliacoes
+      tags: [conciliacoes]
+      summary: List reconciliations
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conciliacao"
+    post:
+      operationId: createConciliacao
+      tags: [conciliacoes]
+      summary: Create a reconciliation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConciliacaoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conciliacao"
+
+  /conciliacoes/{id}:
+    patch:
+      operationId: updateConciliacao
+      tags: [conciliacoes]
+      summary: Update reconciliation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConciliacaoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conciliacao"
+    delete:
+      operationId: deleteConciliacao
+      tags: [conciliacoes]
+      summary: Delete reconciliation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /conciliacoes/{id}/itens:
+    get:
+      operationId: listConciliacaoItens
+      tags: [conciliacoes]
+      summary: List line items extracted from documents imported into a reconciliation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConciliacaoItem"
+
+  # ─── Exceções ─────────────────────────────────────────────
+  /excecoes:
+    get:
+      operationId: listExcecoes
+      tags: [excecoes]
+      summary: List exceptions
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Excecao"
+    post:
+      operationId: createExcecao
+      tags: [excecoes]
+      summary: Create exception
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExcecaoInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Excecao"
+
+  /excecoes/{id}:
+    patch:
+      operationId: updateExcecao
+      tags: [excecoes]
+      summary: Update exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExcecaoUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Excecao"
+    delete:
+      operationId: deleteExcecao
+      tags: [excecoes]
+      summary: Delete exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── KPIs ─────────────────────────────────────────────────
+  /kpis:
+    get:
+      operationId: listKpis
+      tags: [kpis]
+      summary: List KPIs
+      parameters:
+        - name: obra_id
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: periodo
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Kpi"
+    post:
+      operationId: createKpi
+      tags: [kpis]
+      summary: Create KPI entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KpiInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Kpi"
+
+  /kpis/{id}:
+    patch:
+      operationId: updateKpi
+      tags: [kpis]
+      summary: Update KPI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KpiUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Kpi"
+    delete:
+      operationId: deleteKpi
+      tags: [kpis]
+      summary: Delete KPI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /kpis/summary:
+    get:
+      operationId: getKpiSummary
+      tags: [kpis]
+      summary: Aggregated KPI summary across obras
+      responses:
+        "200":
+          description: KPI summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KpiSummary"
+
+  # ─── Audit Log ────────────────────────────────────────────
+  /audit-log:
+    get:
+      operationId: listAuditLog
+      tags: [audit]
+      summary: List audit log entries
+      parameters:
+        - name: entidade
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    AuthUser:
+      type: object
+      required: [id, isAuthenticated]
+      properties:
+        id:
+          type: ["string", "null"]
+        isAuthenticated:
+          type: boolean
+        firstName:
+          type: ["string", "null"]
+        lastName:
+          type: ["string", "null"]
+        profileImage:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        role:
+          type: ["string", "null"]
+
+    DashboardSummary:
+      type: object
+      required: [totalObras, obrasAtivas, totalVisitas, rncsAbertos, compromissosVencidos, totalAtivos, totalContratos, totalExcecoesPendentes]
+      properties:
+        totalObras:
+          type: integer
+        obrasAtivas:
+          type: integer
+        totalVisitas:
+          type: integer
+        rncsAbertos:
+          type: integer
+        compromissosVencidos:
+          type: integer
+        totalAtivos:
+          type: integer
+        totalContratos:
+          type: integer
+        totalExcecoesPendentes:
+          type: integer
+        visitasUltimos30Dias:
+          type: integer
+        rncsUltimos30Dias:
+          type: integer
+
+    ActivityItem:
+      type: object
+      required: [id, tipo, descricao, entidade, entidade_id, created_at]
+      properties:
+        id:
+          type: integer
+        tipo:
+          type: string
+        descricao:
+          type: string
+        entidade:
+          type: string
+        entidade_id:
+          type: integer
+        usuario:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    Obra:
+      type: object
+      required: [id, nome, codigo, status, created_at]
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        codigo:
+          type: string
+        descricao:
+          type: ["string", "null"]
+        status:
+          type: string
+        data_inicio:
+          type: ["string", "null"]
+        data_fim_prevista:
+          type: ["string", "null"]
+        data_fim_real:
+          type: ["string", "null"]
+        localizacao:
+          type: ["string", "null"]
+        gestor_responsavel:
+          type: ["string", "null"]
+        created_at:
+          type: string
+        updated_at:
+          type: string
+
+    ObraInput:
+      type: object
+      required: [nome, codigo, status]
+      properties:
+        nome:
+          type: string
+          minLength: 1
+        codigo:
+          type: string
+          minLength: 1
+        descricao:
+          type: string
+        status:
+          type: string
+        data_inicio:
+          type: string
+        data_fim_prevista:
+          type: string
+        localizacao:
+          type: string
+        gestor_responsavel:
+          type: string
+
+    ObraUpdate:
+      type: object
+      properties:
+        nome:
+          type: string
+        codigo:
+          type: string
+        descricao:
+          type: string
+        status:
+          type: string
+        data_inicio:
+          type: string
+        data_fim_prevista:
+          type: string
+        data_fim_real:
+          type: string
+        localizacao:
+          type: string
+        gestor_responsavel:
+          type: string
+
+    ObraDashboard:
+      type: object
+      required: [obra, totalVisitas, rncsAbertos, compromissosVencidos, totalAtivos, totalFrentes, totalContratos]
+      properties:
+        obra:
+          $ref: "#/components/schemas/Obra"
+        totalVisitas:
+          type: integer
+        rncsAbertos:
+          type: integer
+        compromissosVencidos:
+          type: integer
+        totalAtivos:
+          type: integer
+        totalFrentes:
+          type: integer
+        totalContratos:
+          type: integer
+        kpis:
+          type: array
+          items:
+            $ref: "#/components/schemas/Kpi"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+
+    Contrato:
+      type: object
+      required: [id, numero, obra_id, status, created_at]
+      properties:
+        id:
+          type: integer
+        numero:
+          type: string
+        descricao:
+          type: ["string", "null"]
+        obra_id:
+          type: integer
+        valor:
+          type: ["number", "null"]
+        status:
+          type: string
+        data_inicio:
+          type: ["string", "null"]
+        data_fim:
+          type: ["string", "null"]
+        contratante:
+          type: ["string", "null"]
+        contratado:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    ContratoInput:
+      type: object
+      required: [numero, obra_id, status]
+      properties:
+        numero:
+          type: string
+        descricao:
+          type: string
+        obra_id:
+          type: integer
+        valor:
+          type: number
+        status:
+          type: string
+        data_inicio:
+          type: string
+        data_fim:
+          type: string
+        contratante:
+          type: string
+        contratado:
+          type: string
+
+    ContratoUpdate:
+      type: object
+      properties:
+        numero:
+          type: string
+        descricao:
+          type: string
+        valor:
+          type: number
+        status:
+          type: string
+        data_inicio:
+          type: string
+        data_fim:
+          type: string
+        contratante:
+          type: string
+        contratado:
+          type: string
+
+    Frente:
+      type: object
+      required: [id, nome, obra_id, status, created_at]
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        descricao:
+          type: ["string", "null"]
+        obra_id:
+          type: integer
+        responsavel:
+          type: ["string", "null"]
+        status:
+          type: string
+        created_at:
+          type: string
+
+    FrenteInput:
+      type: object
+      required: [nome, obra_id, status]
+      properties:
+        nome:
+          type: string
+        descricao:
+          type: string
+        obra_id:
+          type: integer
+        responsavel:
+          type: string
+        status:
+          type: string
+
+    FrenteUpdate:
+      type: object
+      properties:
+        nome:
+          type: string
+        descricao:
+          type: string
+        responsavel:
+          type: string
+        status:
+          type: string
+
+    Ativo:
+      type: object
+      required: [id, nome, tipo, status, created_at]
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        tipo:
+          type: string
+        numero_serie:
+          type: ["string", "null"]
+        obra_id:
+          type: ["integer", "null"]
+        status:
+          type: string
+        data_aquisicao:
+          type: ["string", "null"]
+        valor:
+          type: ["number", "null"]
+        created_at:
+          type: string
+
+    AtivoInput:
+      type: object
+      required: [nome, tipo, status]
+      properties:
+        nome:
+          type: string
+        tipo:
+          type: string
+        numero_serie:
+          type: string
+        obra_id:
+          type: integer
+        status:
+          type: string
+        data_aquisicao:
+          type: string
+        valor:
+          type: number
+
+    AtivoUpdate:
+      type: object
+      properties:
+        nome:
+          type: string
+        tipo:
+          type: string
+        numero_serie:
+          type: string
+        obra_id:
+          type: integer
+        status:
+          type: string
+        data_aquisicao:
+          type: string
+        valor:
+          type: number
+
+    Visita:
+      type: object
+      required: [id, obra_id, data_visita, status, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        visitante:
+          type: ["string", "null"]
+        data_visita:
+          type: string
+        observacoes:
+          type: ["string", "null"]
+        status:
+          type: string
+        frente_id:
+          type: ["integer", "null"]
+        created_at:
+          type: string
+
+    VisitaInput:
+      type: object
+      required: [obra_id, data_visita, status]
+      properties:
+        obra_id:
+          type: integer
+        visitante:
+          type: string
+        data_visita:
+          type: string
+        observacoes:
+          type: string
+        status:
+          type: string
+        frente_id:
+          type: integer
+
+    VisitaUpdate:
+      type: object
+      properties:
+        visitante:
+          type: string
+        data_visita:
+          type: string
+        observacoes:
+          type: string
+        status:
+          type: string
+        frente_id:
+          type: integer
+
+    ChecklistItem:
+      type: object
+      required: [id, visita_id, descricao, status, created_at]
+      properties:
+        id:
+          type: integer
+        visita_id:
+          type: integer
+        descricao:
+          type: string
+        status:
+          type: string
+        observacao:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    ChecklistItemInput:
+      type: object
+      required: [visita_id, descricao, status]
+      properties:
+        visita_id:
+          type: integer
+        descricao:
+          type: string
+        status:
+          type: string
+        observacao:
+          type: string
+
+    ChecklistItemUpdate:
+      type: object
+      properties:
+        descricao:
+          type: string
+        status:
+          type: string
+        observacao:
+          type: string
+
+    Rnc:
+      type: object
+      required: [id, obra_id, numero, descricao, tipo, status, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        numero:
+          type: string
+        descricao:
+          type: string
+        tipo:
+          type: string
+        status:
+          type: string
+        data_identificacao:
+          type: ["string", "null"]
+        responsavel:
+          type: ["string", "null"]
+        gravidade:
+          type: ["string", "null"]
+        causa_imediata:
+          type: ["string", "null"]
+        causa_raiz:
+          type: ["string", "null"]
+        evidencia_textual:
+          type: ["string", "null"]
+        recorrente:
+          type: string
+        recorrencia_refs:
+          type: ["string", "null"]
+        verificado_por:
+          type: ["string", "null"]
+        verificado_em:
+          type: ["string", "null"]
+        verificacao_obs:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    RncInput:
+      type: object
+      required: [obra_id, numero, descricao, tipo, status]
+      properties:
+        obra_id:
+          type: integer
+        numero:
+          type: string
+        descricao:
+          type: string
+        tipo:
+          type: string
+        status:
+          type: string
+        data_identificacao:
+          type: string
+        responsavel:
+          type: string
+        gravidade:
+          type: string
+
+    RncUpdate:
+      type: object
+      properties:
+        descricao:
+          type: string
+        tipo:
+          type: string
+        status:
+          type: string
+        data_identificacao:
+          type: string
+        responsavel:
+          type: string
+        gravidade:
+          type: string
+        causa_imediata:
+          type: string
+        causa_raiz:
+          type: string
+        evidencia_textual:
+          type: string
+        recorrente:
+          type: string
+        recorrencia_refs:
+          type: string
+        verificado_por:
+          type: string
+        verificacao_obs:
+          type: string
+
+    RncStats:
+      type: object
+      required: [total, byStatus, byTipo, byGravidade]
+      properties:
+        total:
+          type: integer
+        byStatus:
+          type: array
+          items:
+            type: object
+            required: [status, count]
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+        byTipo:
+          type: array
+          items:
+            type: object
+            required: [tipo, count]
+            properties:
+              tipo:
+                type: string
+              count:
+                type: integer
+        byGravidade:
+          type: array
+          items:
+            type: object
+            required: [gravidade, count]
+            properties:
+              gravidade:
+                type: string
+              count:
+                type: integer
+
+    Capa:
+      type: object
+      required: [id, rnc_id, tipo, descricao, acao, status, created_at]
+      properties:
+        id:
+          type: integer
+        rnc_id:
+          type: integer
+        tipo:
+          type: string
+        descricao:
+          type: string
+        acao:
+          type: string
+        responsavel:
+          type: ["string", "null"]
+        prazo:
+          type: ["string", "null"]
+        status:
+          type: string
+        executado_por:
+          type: ["string", "null"]
+        executado_em:
+          type: ["string", "null"]
+        execucao_obs:
+          type: ["string", "null"]
+        verificado_por:
+          type: ["string", "null"]
+        verificado_em:
+          type: ["string", "null"]
+        verificacao_obs:
+          type: ["string", "null"]
+        eficaz:
+          type: ["string", "null"]
+        eficacia_avaliado_por:
+          type: ["string", "null"]
+        eficacia_avaliado_em:
+          type: ["string", "null"]
+        eficacia_obs:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    CapaInput:
+      type: object
+      required: [rnc_id, descricao, acao, status]
+      properties:
+        rnc_id:
+          type: integer
+        tipo:
+          type: string
+        descricao:
+          type: string
+        acao:
+          type: string
+        responsavel:
+          type: string
+        prazo:
+          type: string
+        status:
+          type: string
+
+    CapaUpdate:
+      type: object
+      properties:
+        tipo:
+          type: string
+        descricao:
+          type: string
+        acao:
+          type: string
+        responsavel:
+          type: string
+        prazo:
+          type: string
+        status:
+          type: string
+        executado_por:
+          type: string
+        execucao_obs:
+          type: string
+        verificado_por:
+          type: string
+        verificacao_obs:
+          type: string
+        eficaz:
+          type: string
+        eficacia_avaliado_por:
+          type: string
+        eficacia_obs:
+          type: string
+
+    Compromisso:
+      type: object
+      required: [id, obra_id, descricao, status, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        descricao:
+          type: string
+        responsavel:
+          type: ["string", "null"]
+        prazo:
+          type: ["string", "null"]
+        status:
+          type: string
+        prioridade:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    CompromissoInput:
+      type: object
+      required: [obra_id, descricao, status]
+      properties:
+        obra_id:
+          type: integer
+        descricao:
+          type: string
+        responsavel:
+          type: string
+        prazo:
+          type: string
+        status:
+          type: string
+        prioridade:
+          type: string
+
+    CompromissoUpdate:
+      type: object
+      properties:
+        descricao:
+          type: string
+        responsavel:
+          type: string
+        prazo:
+          type: string
+        status:
+          type: string
+        prioridade:
+          type: string
+
+    Documento:
+      type: object
+      required: [id, obra_id, nome, tipo, status, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        nome:
+          type: string
+        tipo:
+          type: string
+        url:
+          type: ["string", "null"]
+        versao:
+          type: ["string", "null"]
+        status:
+          type: string
+        created_at:
+          type: string
+
+    DocumentoInput:
+      type: object
+      required: [obra_id, nome, tipo, status]
+      properties:
+        obra_id:
+          type: integer
+        nome:
+          type: string
+        tipo:
+          type: string
+        url:
+          type: string
+        versao:
+          type: string
+        status:
+          type: string
+
+    DocumentoUpdate:
+      type: object
+      properties:
+        nome:
+          type: string
+        tipo:
+          type: string
+        url:
+          type: string
+        versao:
+          type: string
+        status:
+          type: string
+
+    Conciliacao:
+      type: object
+      required: [id, obra_id, descricao, status, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        descricao:
+          type: string
+        valor:
+          type: ["number", "null"]
+        status:
+          type: string
+        data_referencia:
+          type: ["string", "null"]
+        observacoes:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    ConciliacaoInput:
+      type: object
+      required: [obra_id, descricao, status]
+      properties:
+        obra_id:
+          type: integer
+        descricao:
+          type: string
+        valor:
+          type: number
+        status:
+          type: string
+        data_referencia:
+          type: string
+        observacoes:
+          type: string
+
+    ConciliacaoUpdate:
+      type: object
+      properties:
+        descricao:
+          type: string
+        valor:
+          type: number
+        status:
+          type: string
+        data_referencia:
+          type: string
+        observacoes:
+          type: string
+
+    Excecao:
+      type: object
+      required: [id, obra_id, descricao, status, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        conciliacao_id:
+          type: ["integer", "null"]
+        conciliacao_item_id:
+          type: ["integer", "null"]
+        descricao:
+          type: string
+        motivo:
+          type: ["string", "null"]
+        tipo_divergencia:
+          type: ["string", "null"]
+        fonte:
+          type: ["string", "null"]
+        confianca:
+          type: ["string", "null"]
+        acao_humana_necessaria:
+          type: ["string", "null"]
+        status:
+          type: string
+        aprovador:
+          type: ["string", "null"]
+        data_aprovacao:
+          type: ["string", "null"]
+        created_at:
+          type: string
+
+    ExcecaoInput:
+      type: object
+      required: [obra_id, descricao, status]
+      properties:
+        obra_id:
+          type: integer
+        descricao:
+          type: string
+        motivo:
+          type: string
+        status:
+          type: string
+        aprovador:
+          type: string
+
+    ExcecaoUpdate:
+      type: object
+      properties:
+        descricao:
+          type: string
+        motivo:
+          type: string
+        status:
+          type: string
+        aprovador:
+          type: string
+        data_aprovacao:
+          type: string
+
+    ConciliacaoItem:
+      type: object
+      required: [id, conciliacao_id, origem_arquivo, formato_origem, extracao_confianca, created_at]
+      properties:
+        id:
+          type: integer
+        conciliacao_id:
+          type: integer
+        codigo:
+          type: ["string", "null"]
+        descricao:
+          type: ["string", "null"]
+        unidade:
+          type: ["string", "null"]
+        qtd_enviado:
+          type: ["string", "null"]
+        qtd_faturado:
+          type: ["string", "null"]
+        qtd_devolvido:
+          type: ["string", "null"]
+        qtd_em_campo:
+          type: ["string", "null"]
+        qtd_indenizado:
+          type: ["string", "null"]
+        valor_unitario:
+          type: ["string", "null"]
+        origem_arquivo:
+          type: string
+        formato_origem:
+          type: string
+        extracao_confianca:
+          type: string
+        created_at:
+          type: string
+
+    ChecklistTemplate:
+      type: object
+      required: [id, nome, categoria, descricao_aviso, itens, created_at]
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        categoria:
+          type: string
+        descricao_aviso:
+          type: string
+        itens:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+
+    ChecklistTemplateInput:
+      type: object
+      required: [nome, categoria, itens]
+      properties:
+        nome:
+          type: string
+        categoria:
+          type: string
+        itens:
+          type: array
+          items:
+            type: string
+
+    ApplyChecklistTemplateInput:
+      type: object
+      required: [template_id]
+      properties:
+        template_id:
+          type: integer
+
+    VisitaGps:
+      type: object
+      required: [id, visita_id, latitude, longitude, consentimento, capturado_em]
+      properties:
+        id:
+          type: integer
+        visita_id:
+          type: integer
+        latitude:
+          type: string
+        longitude:
+          type: string
+        precisao_metros:
+          type: ["string", "null"]
+        consentimento:
+          type: string
+        capturado_em:
+          type: string
+
+    VisitaGpsInput:
+      type: object
+      required: [latitude, longitude, consentimento]
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+        precisao_metros:
+          type: number
+        consentimento:
+          type: string
+          description: Must be "concedido" — recorded only after the user explicitly grants location consent in the app.
+
+    VisitaAtivo:
+      type: object
+      required: [id, visita_id, ativo_id, origem, created_at]
+      properties:
+        id:
+          type: integer
+        visita_id:
+          type: integer
+        ativo_id:
+          type: integer
+        origem:
+          type: string
+        created_at:
+          type: string
+
+    VisitaAtivoInput:
+      type: object
+      required: [ativo_id, origem]
+      properties:
+        ativo_id:
+          type: integer
+        origem:
+          type: string
+          description: "'qr' or 'manual'"
+
+    Kpi:
+      type: object
+      required: [id, obra_id, nome, valor, unidade, periodo, created_at]
+      properties:
+        id:
+          type: integer
+        obra_id:
+          type: integer
+        nome:
+          type: string
+        valor:
+          type: number
+        unidade:
+          type: string
+        periodo:
+          type: string
+        meta:
+          type: ["number", "null"]
+        created_at:
+          type: string
+
+    KpiInput:
+      type: object
+      required: [obra_id, nome, valor, unidade, periodo]
+      properties:
+        obra_id:
+          type: integer
+        nome:
+          type: string
+        valor:
+          type: number
+        unidade:
+          type: string
+        periodo:
+          type: string
+        meta:
+          type: number
+
+    KpiUpdate:
+      type: object
+      properties:
+        nome:
+          type: string
+        valor:
+          type: number
+        unidade:
+          type: string
+        periodo:
+          type: string
+        meta:
+          type: number
+
+    KpiSummary:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [nome, valorMedio, unidade, count]
+            properties:
+              nome:
+                type: string
+              valorMedio:
+                type: number
+              metaMedia:
+                type: ["number", "null"]
+              unidade:
+                type: string
+              count:
+                type: integer
+
+    AuditLog:
+      type: object
+      required: [id, acao, entidade, created_at]
+      properties:
+        id:
+          type: integer
+        usuario_id:
+          type: ["string", "null"]
+        usuario_nome:
+          type: ["string", "null"]
+        acao:
+          type: string
+        entidade:
+          type: string
+        entidade_id:
+          type: ["integer", "null"]
+        detalhes:
+          type: ["string", "null"]
+        created_at:
+          type: string
