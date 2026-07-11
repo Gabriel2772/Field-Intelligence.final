@@ -1,0 +1,46 @@
+name: Bootstrap validated final source
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+env:
+  SOURCE_ARCHIVE_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-c44c-720e-b6de-05e4398ac9e0/raw?se=2026-07-11T19:59:57Z&sp=r&sv=2026-02-06&sr=b&scid=03443e17-6e3d-5c76-86be-b613660633ad&skoid=a6356955-0ca0-4033-9150-c0c162458498&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-11T12:06:53Z&ske=2026-07-13T12:06:53Z&sks=b&skv=2026-02-06&sig=S%2Bz6JxBEHKkgT%2BnNaJSj6e9okiSISOU9rGJZJXMg9JA%3D"
+
+jobs:
+  import-source:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout bootstrap repository
+        uses: actions/checkout@v4
+
+      - name: Download validated source artifact
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 2 "$SOURCE_ARCHIVE_URL" --output validated-artifact.zip
+          mkdir -p artifact source
+          unzip -q validated-artifact.zip -d artifact
+          unzip -q artifact/field-intelligence-source.zip -d source
+          test -f source/package.json
+          test -f source/.replit
+          test -f source/artifacts/tequaly/src/pages/login.tsx
+
+      - name: Replace bootstrap with validated project
+        run: |
+          set -euo pipefail
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name source -exec rm -rf {} +
+          cp -a source/. .
+          rm -rf source
+
+      - name: Commit complete final repository
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import validated Tequaly visual 2.1 source [skip ci]"
+          git push origin HEAD:main
